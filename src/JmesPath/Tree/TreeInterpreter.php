@@ -13,6 +13,9 @@ class TreeInterpreter implements TreeVisitorInterface
     /** @var RuntimeInterface Runtime used to manage function calls */
     private $runtime;
 
+    /** @var null|int|string The current index of a projection */
+    private $currentIndex = null;
+
     public function visit(array $node, $data, array $args = null)
     {
         if (!isset($args['runtime'])) {
@@ -83,7 +86,8 @@ class TreeInterpreter implements TreeVisitorInterface
                 }
 
                 $collected = array();
-                foreach ($left as $val) {
+                foreach ($left as $key => $val) {
+                    $this->currentIndex = $key;
                     if (null !== ($result = $this->dispatch($node['children'][1], $val))) {
                         $collected[] = $result;
                     }
@@ -138,6 +142,7 @@ class TreeInterpreter implements TreeVisitorInterface
             case 'pipe':
                 // Parses the left child, resets the parser state, and passes
                 // the result of the left child to the right child.
+                $this->currentIndex = null;
                 return $this->dispatch(
                     $node['children'][1],
                     $this->dispatch($node['children'][0], $value)
@@ -225,6 +230,10 @@ class TreeInterpreter implements TreeVisitorInterface
                 // No-op used to return the current node and ensures binary
                 // nodes have a left and right child.
                 return $value;
+
+            case 'pound':
+                // The current index of the current projection
+                return $this->currentIndex;
 
             default:
                 throw new \RuntimeException("Unknown node type: {$node['type']}");

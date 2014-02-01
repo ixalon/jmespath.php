@@ -30,6 +30,7 @@ class Lexer
     const T_LITERAL    = 'T_LITERAL';
     const T_FILTER     = 'T_FILTER';
     const T_AT         = 'T_AT';
+    const T_POUND      = 'T_POUND';
 
     /** @var array Array of simple matches to token types */
     private static $simpleTokens = array(
@@ -47,6 +48,7 @@ class Lexer
         '('  => self::T_LPARENS,
         ')'  => self::T_RPARENS,
         '@'  => self::T_AT,
+        '#'  => self::T_POUND
     );
 
     /** @var array Valid identifier characters */

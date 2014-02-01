@@ -24,6 +24,7 @@ class Parser
         Lexer::T_LITERAL    => true,
         Lexer::T_MERGE      => true,
         Lexer::T_AT         => true,
+        Lexer::T_POUND      => true,
     );
 
     private static $precedence = array(
@@ -326,6 +327,7 @@ class Parser
             Lexer::T_LITERAL    => true, // [`true`]
             Lexer::T_FUNCTION   => true, // [count(@)]
             Lexer::T_FILTER     => true, // [[?bar = 10], baz]
+            Lexer::T_POUND      => true, // [#, baz]
         );
 
         static $nextTypesAfterIdentifier = array(
@@ -333,6 +335,7 @@ class Parser
             Lexer::T_STAR       => true, // foo[*]
             Lexer::T_COLON      => true, // foo[:1]
             Lexer::T_FILTER     => true, // foo[[?bar = 10], baz],
+            Lexer::T_POUND      => true, // [#, baz]
         );
 
         $this->tokens->next($left ? $nextTypesAfterIdentifier : $nextTypes);
@@ -452,6 +455,13 @@ class Parser
             'children' => array($this->parseExpression(2)),
             'key'      => $keyToken['value']
         );
+    }
+
+    private function parse_T_POUND()
+    {
+        $this->tokens->next();
+
+        return array('type' => 'pound');
     }
 
     private function assertNotEof()

@@ -37,6 +37,7 @@ class Parser
         'number'            => 0,
         'current'           => 0,
         'expref'            => 0,
+        'colon'             => 0,
         'pipe'              => 1,
         'comparator'        => 2,
         'or'                => 5,
@@ -155,7 +156,12 @@ class Parser
 
     private function nud_lbrace()
     {
-        static $validKeys = ['quoted_identifier' => true, 'identifier' => true];
+        static $validKeys = [
+            'quoted_identifier' => true,
+            'identifier'        => true,
+            'expref'            => true
+        ];
+
         $this->next($validKeys);
         $pairs = [];
 
@@ -346,8 +352,17 @@ class Parser
     private function parseKeyValuePair()
     {
         static $validColon = ['colon' => true];
-        $key = $this->token['value'];
-        $this->next($validColon);
+
+        if ($this->token['type'] == 'expref') {
+            $key = $this->expr();
+            if ($this->token['type'] != 'colon') {
+                $this->throwSyntax('Expected colon');
+            }
+        } else {
+            $key = $this->token['value'];
+            $this->next($validColon);
+        }
+
         $this->next();
 
         return [

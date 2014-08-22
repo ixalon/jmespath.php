@@ -179,7 +179,10 @@ class TreeInterpreter implements TreeVisitorInterface
 
                 $collected = [];
                 foreach ($node['children'] as $node) {
-                    $collected[$node['key']] = $this->dispatch(
+                    $key = is_string($node['key'])
+                        ? $node['key']
+                        : $this->dispatch($node['key']['children'][0], $value);
+                    $collected[$key] = $this->dispatch(
                         $node['children'][0],
                         $value
                     );

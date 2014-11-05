@@ -8,6 +8,7 @@ class TreeInterpreter
 {
     /** @var callable */
     private $fnDispatcher;
+    private $symbolTable;
 
     /**
      * @param callable $fnDispatcher Function dispatching function that accepts
@@ -29,6 +30,7 @@ class TreeInterpreter
      */
     public function visit(array $node, $data)
     {
+        $this->symbolTable = [];
         return $this->dispatch($node, $data);
     }
 
@@ -184,7 +186,7 @@ class TreeInterpreter
                 foreach ($node['children'] as $arg) {
                     $args[] = $this->dispatch($arg, $value);
                 }
-                return $dispatcher($node['value'], $args);
+                return $dispatcher($node['value'], $args, $this->symbolTable);
 
             case 'slice':
                 return is_string($value) || Utils::isArray($value)
@@ -198,8 +200,12 @@ class TreeInterpreter
             case 'expref':
                 $apply = $node['children'][0];
                 return function ($value) use ($apply) {
-                    return $this->visit($apply, $value);
+                    return $this->dispatch($apply, $value);
                 };
+
+            case 'variable':
+                $table = $this->symbolTable ? end($this->symbolTable) : [];
+                return isset($table[$node['value']]) ? $table[$node['value']] : null;
 
             default:
                 throw new \RuntimeException("Unknown node type: {$node['type']}");

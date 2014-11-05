@@ -29,6 +29,7 @@ class TreeCompiler
             ->write("// {$expr}")
             ->write('function %s(Ti $interpreter, $value) {', [$fnName])
             ->indent()
+                ->write('$symbolTable = [];')
                 ->write('$current = $value;')
                 ->dispatch($ast)
                 ->write('')
@@ -238,7 +239,7 @@ class TreeCompiler
         }
 
         return $this->write(
-            '$value = Fn::getInstance()->__invoke("%s", %s);',
+            '$value = Fn::getInstance()->__invoke("%s", %s, $symbolTable);',
             [$node['value'], $args]
         );
     }

@@ -25,23 +25,24 @@ class FnDispatcher
     }
 
     /**
-     * @param string $fn   Function name.
-     * @param array  $args Function arguments.
+     * @param string $fn      Function name.
+     * @param array  $args    Function arguments.
+     * @param array  $symbols Symbol table passed by reference
      *
      * @return mixed
      */
-    public function __invoke($fn, array $args)
+    public function __invoke($fn, array $args, array &$symbols)
     {
-        return $this->{'fn_' . $fn}($args);
+        return $this->{'fn_' . $fn}($args, $symbols);
     }
 
-    private function fn_abs(array $args)
+    private function fn_abs(array $args, array &$symbols)
     {
         $this->validate('abs', $args, [['number']]);
         return abs($args[0]);
     }
 
-    private function fn_avg(array $args)
+    private function fn_avg(array $args, array &$symbols)
     {
         $this->validate('avg', $args, [['array']]);
         $sum = $this->reduce('avg:0', $args[0], ['number'], function ($a, $b) {
@@ -50,13 +51,13 @@ class FnDispatcher
         return $args[0] ? ($sum / count($args[0])) : null;
     }
 
-    private function fn_ceil(array $args)
+    private function fn_ceil(array $args, array &$symbols)
     {
         $this->validate('ceil', $args, [['number']]);
         return ceil($args[0]);
     }
 
-    private function fn_contains(array $args)
+    private function fn_contains(array $args, array &$symbols)
     {
         $this->validate('contains', $args, [['string', 'array'], ['any']]);
         if (is_array($args[0])) {
@@ -68,20 +69,20 @@ class FnDispatcher
         }
     }
 
-    private function fn_ends_with(array $args)
+    private function fn_ends_with(array $args, array &$symbols)
     {
         $this->validate('ends_with', $args, [['string'], ['string']]);
         list($search, $suffix) = $args;
         return $suffix === '' || substr($search, -strlen($suffix)) === $suffix;
     }
 
-    private function fn_floor(array $args)
+    private function fn_floor(array $args, array &$symbols)
     {
         $this->validate('floor', $args, [['number']]);
         return floor($args[0]);
     }
 
-    private function fn_not_null(array $args)
+    private function fn_not_null(array $args, array &$symbols)
     {
         if (!$args) {
             throw new \RuntimeException(
@@ -94,7 +95,7 @@ class FnDispatcher
         });
     }
 
-    private function fn_join(array $args)
+    private function fn_join(array $args, array &$symbols)
     {
         $this->validate('join', $args, [['string'], ['array']]);
         $fn = function ($a, $b, $i) use ($args) {
@@ -103,26 +104,26 @@ class FnDispatcher
         return $this->reduce('join:0', $args[1], ['string'], $fn);
     }
 
-    private function fn_keys(array $args)
+    private function fn_keys(array $args, array &$symbols)
     {
         $this->validate('keys', $args, [['object']]);
         return array_keys((array) $args[0]);
     }
 
-    private function fn_length(array $args)
+    private function fn_length(array $args, array &$symbols)
     {
         $this->validate('length', $args, [['string', 'array', 'object']]);
         return is_string($args[0]) ? strlen($args[0]) : count((array) $args[0]);
     }
 
-    private function fn_max(array $args)
+    private function fn_max(array $args, array &$symbols)
     {
         $this->validate('max', $args, [['array']]);
         $fn = function ($a, $b) { return $a >= $b ? $a : $b; };
         return $this->reduce('max:0', $args[0], ['number', 'string'], $fn);
     }
 
-    private function fn_max_by(array $args)
+    private function fn_max_by(array $args, array &$symbols)
     {
         $this->validate('max_by', $args, [['array'], ['expression']]);
         $expr = $this->wrapExpression('max_by:1', $args[1], ['number', 'string']);
@@ -134,14 +135,14 @@ class FnDispatcher
         return $this->reduce('max_by:1', $args[0], ['any'], $fn);
     }
 
-    private function fn_min(array $args)
+    private function fn_min(array $args, array &$symbols)
     {
         $this->validate('min', $args, [['array']]);
         $fn = function ($a, $b, $i) { return $i && $a <= $b ? $a : $b; };
         return $this->reduce('min:0', $args[0], ['number', 'string'], $fn);
     }
 
-    private function fn_min_by(array $args)
+    private function fn_min_by(array $args, array &$symbols)
     {
         $this->validate('min_by', $args, [['array'], ['expression']]);
         $expr = $this->wrapExpression('min_by:1', $args[1], ['number', 'string']);
@@ -152,7 +153,7 @@ class FnDispatcher
         return $this->reduce('min_by:1', $args[0], ['any'], $fn);
     }
 
-    private function fn_reverse(array $args)
+    private function fn_reverse(array $args, array &$symbols)
     {
         $this->validate('reverse', $args, [['array', 'string']]);
         if (is_array($args[0])) {
@@ -164,14 +165,14 @@ class FnDispatcher
         }
     }
 
-    private function fn_sum(array $args)
+    private function fn_sum(array $args, array &$symbols)
     {
         $this->validate('sum', $args, [['array']]);
         $fn = function ($a, $b) { return $a + $b; };
         return $this->reduce('sum:0', $args[0], ['number'], $fn);
     }
 
-    private function fn_sort(array $args)
+    private function fn_sort(array $args, array &$symbols)
     {
         $this->validate('sort', $args, [['array']]);
         $valid = ['string', 'number'];
@@ -181,7 +182,7 @@ class FnDispatcher
         });
     }
 
-    private function fn_sort_by(array $args)
+    private function fn_sort_by(array $args, array &$symbols)
     {
         $this->validate('sort_by', $args, [['array'], ['expression']]);
         $expr = $args[1];
@@ -197,20 +198,20 @@ class FnDispatcher
         );
     }
 
-    private function fn_starts_with(array $args)
+    private function fn_starts_with(array $args, array &$symbols)
     {
         $this->validate('starts_with', $args, [['string'], ['string']]);
         list($search, $prefix) = $args;
         return $prefix === '' || strpos($search, $prefix) === 0;
     }
 
-    private function fn_type(array $args)
+    private function fn_type(array $args, array &$symbols)
     {
         $this->validateArity('type', count($args), 1);
         return Utils::type($args[0]);
     }
 
-    private function fn_to_string(array $args)
+    private function fn_to_string(array $args, array &$symbols)
     {
         $this->validateArity('to_string', count($args), 1);
         $v = $args[0];
@@ -226,7 +227,7 @@ class FnDispatcher
         return json_encode($v);
     }
 
-    private function fn_to_number(array $args)
+    private function fn_to_number(array $args, array &$symbols)
     {
         $this->validateArity('to_number', count($args), 1);
         $value = $args[0];
@@ -240,10 +241,22 @@ class FnDispatcher
         }
     }
 
-    private function fn_values(array $args)
+    private function fn_values(array $args, array &$symbols)
     {
         $this->validate('values', $args, [['array', 'object']]);
         return array_values((array) $args[0]);
+    }
+
+    private function fn_let(array $args, array &$symbols)
+    {
+        $this->validate('let', $args, [['object'], ['expression']]);
+        // Merge the new variables onto the previous symbol table scope.
+        $symbols[] = $symbols ? $args[0] + end($symbols) : $args[0];
+        $result = $args[1](null, $symbols);
+        // Exit the new scope.
+        array_pop($symbols);
+
+        return $result;
     }
 
     private function typeError($from, $msg)

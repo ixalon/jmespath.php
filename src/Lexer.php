@@ -35,6 +35,7 @@ class Lexer
         '>='                         => 'comparator',
         '<'                          => 'comparator',
         '>'                          => 'comparator',
+        '\$[a-zA-Z_][a-zA-Z_0-9]*'   => 'variable',
         '[ \t]'                      => 'skip',
     ];
 
@@ -78,6 +79,9 @@ class Lexer
                         $token['value'] = $this->literal(
                             $token['value'], $offset, $input
                         );
+                        break;
+                    case 'variable':
+                        $token['value'] = substr($token['value'], 1);
                         break;
                 }
                 $tokens[] = $token;

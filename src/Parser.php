@@ -18,6 +18,7 @@ class Parser
 
     private static $bp = [
         'eof'               => 0,
+        'variable'          => 0,
         'quoted_identifier' => 0,
         'identifier'        => 0,
         'rbracket'          => 0,
@@ -176,6 +177,13 @@ class Parser
         } else {
             return $this->parseMultiSelectList();
         }
+    }
+
+    private function nud_variable()
+    {
+        $value = $this->token['value'];
+        $this->next();
+        return ['type' => 'variable', 'value' => $value];
     }
 
     private function led_lbracket(array $left)

@@ -8,14 +8,15 @@ class FnDispatcherTest extends \PHPUnit_Framework_TestCase
     public function testConvertsToString()
     {
         $fn = new FnDispatcher();
-        $this->assertEquals('foo', $fn('to_string', ['foo']));
-        $this->assertEquals('1', $fn('to_string', [1]));
-        $this->assertEquals('["foo"]', $fn('to_string', [['foo']]));
+        $table = [];
+        $this->assertEquals('foo', $fn('to_string', ['foo'], $table));
+        $this->assertEquals('1', $fn('to_string', [1], $table));
+        $this->assertEquals('["foo"]', $fn('to_string', [['foo']], $table));
         $std = new \stdClass();
         $std->foo = 'bar';
-        $this->assertEquals('{"foo":"bar"}', $fn('to_string', [$std]));
-        $this->assertEquals('foo', $fn('to_string', [new _TestStringClass()]));
-        $this->assertEquals('"foo"', $fn('to_string', [new _TestJsonStringClass()]));
+        $this->assertEquals('{"foo":"bar"}', $fn('to_string', [$std], $table));
+        $this->assertEquals('foo', $fn('to_string', [new _TestStringClass()], $table));
+        $this->assertEquals('"foo"', $fn('to_string', [new _TestJsonStringClass()], $table));
     }
 }
 
